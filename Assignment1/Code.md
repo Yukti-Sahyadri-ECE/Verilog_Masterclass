@@ -1,50 +1,54 @@
 ### CODE
 
 ```verilog
-module updown_counter(
-    input clk,        
-    input rst,        
-    input up_down,    
-    output reg [3:0] count 
+
+module fourto1mux(
+  input [1:0] sel,
+  input [3:0] I, 
+  output reg y
 );
-    always @(posedge clk or posedge rst) begin
-        if (rst)
-            count <= 4'b0000;
-        else if (up_down)
-            count <= count + 1;
-        else
-            count <= count - 1;
+  always@(*)
+    begin
+    case(sel)
+      2'b00:y=I[0];
+      2'b01:y=I[1];
+      2'b10:y=I[2];
+      2'b11:y=I[3];
+      default:y=I[0];
+    endcase
     end
-endmodule
+  endmodule
 ```
 
 ### TEST BENCH
 
 ```verilog
-module tb_updown_counter;
-    reg clk_tb;
-    reg rst_tb;
-    reg up_down_tb;
-  wire [3:0] count_tb;
 
-    updown_counter uut (
-      .clk(clk_tb),
-      .rst(rst_tb),
-      .up_down(up_down_tb),
-      .count(count_tb)
-    );
+  module tb_mux();
+  reg [1:0] sel_tb;   
+  reg [3:0] I_tb;
+  wire y_tb;
 
-    initial clk_tb = 0;
-    always #5 clk_tb = ~clk_tb;
-
-    initial begin
-        $dumpfile("updown_counter.vcd");
-        $dumpvars(0, tb_updown_counter);
-
-        rst_tb = 1;
-        #10 rst_tb = 0; up_down_tb= 1;
-        #50 up_down_tb= 0;
-        #50 $finish;
-    end
+  fourto1mux u0 (
+    .sel(sel_tb),
+    .I(I_tb),
+    .y(y_tb)
+  );
+  
+  initial begin
+    $dumpfile("mux.vcd");
+    $dumpvars(0, tb_mux);
+    I_tb = 4'b1011;
+    sel_tb = 2'b00;
+    $display("%b   %b = %b", sel_tb, I_tb, y_tb); 
+    #10 sel_tb = 2'b01;
+    $display("%b   %b -> %b", sel_tb, I_tb, y_tb);
+    #10 sel_tb = 2'b10;
+    $display("%b   %b -> %b", sel_tb, I_tb, y_tb);
+    #10 sel_tb = 2'b11;
+    $display("%b   %b -> %b", sel_tb, I_tb, y_tb);
+    #10 $finish;
+  end
 endmodule
+
 ```
